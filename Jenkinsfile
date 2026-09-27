@@ -2,6 +2,10 @@ pipeline {
 
     agent any
 
+    options {
+        skipDefaultCheckout(true)
+    }
+
     parameters {
         booleanParam(
             name: 'DOCKER_RUN',
@@ -17,6 +21,8 @@ pipeline {
 
         API_USERNAME = credentials('api-username')
         API_PASSWORD = credentials('api-password')
+
+        DOCKER_IMAGE = "playwright-api-tests:${BUILD_NUMBER}"
     }
 
     stages {
@@ -30,7 +36,7 @@ pipeline {
         stage('Install Dependencies') {
             when {
                 expression {
-                    return !params.DOCKER_RUN
+                    !params.DOCKER_RUN
                 }
             }
 
@@ -46,7 +52,10 @@ pipeline {
                     if (params.DOCKER_RUN) {
 
                         sh '''
-                            docker build -t playwright-api-tests .
+                            docker build \
+                                -t "$DOCKER_IMAGE" \
+                                .
+
                             docker run --rm \
                                 -e CI=true \
                                 -e API_BASE_URL="$API_BASE_URL" \
@@ -55,7 +64,7 @@ pipeline {
                                 -e API_PASSWORD="$API_PASSWORD" \
                                 -v "$PWD/test-results:/app/test-results" \
                                 -v "$PWD/playwright-report:/app/playwright-report" \
-                                playwright-api-tests
+                                "$DOCKER_IMAGE"
                         '''
 
                     } else {
