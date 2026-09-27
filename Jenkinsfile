@@ -3,12 +3,6 @@ pipeline {
     agent any
 
     parameters {
-        choice(
-            name: 'ENVIRONMENT',
-            choices: ['qa', 'staging'],
-            description: 'Environment to run API tests against'
-        )
-
         booleanParam(
             name: 'DOCKER_RUN',
             defaultValue: false,
@@ -18,6 +12,11 @@ pipeline {
 
     environment {
         CI = 'true'
+        API_BASE_URL = 'https://dummyjson.com'
+        LOG_LEVEL = 'info'
+
+        API_USERNAME = credentials('api-username')
+        API_PASSWORD = credentials('api-password')
     }
 
     stages {
@@ -37,7 +36,6 @@ pipeline {
 
             steps {
                 sh 'npm ci'
-                sh 'npx playwright install --with-deps'
             }
         }
 
@@ -47,21 +45,22 @@ pipeline {
 
                     if (params.DOCKER_RUN) {
 
-                        sh """
+                        sh '''
                             docker build -t playwright-api-tests .
                             docker run --rm \
-                                -e ENVIRONMENT=${params.ENVIRONMENT} \
-                                -v "\$PWD/test-results:/app/test-results" \
-                                -v "\$PWD/playwright-report:/app/playwright-report" \
+                                -e CI=true \
+                                -e API_BASE_URL="$API_BASE_URL" \
+                                -e LOG_LEVEL="$LOG_LEVEL" \
+                                -e API_USERNAME="$API_USERNAME" \
+                                -e API_PASSWORD="$API_PASSWORD" \
+                                -v "$PWD/test-results:/app/test-results" \
+                                -v "$PWD/playwright-report:/app/playwright-report" \
                                 playwright-api-tests
-                        """
+                        '''
 
                     } else {
 
-                        sh """
-                            ENVIRONMENT=${params.ENVIRONMENT} \
-                            npx playwright test
-                        """
+                        sh 'npm test'
                     }
                 }
             }
@@ -73,7 +72,7 @@ pipeline {
         always {
 
             junit(
-                testResults: 'test-results/*.xml',
+                testResults: 'test-results/results.xml',
                 allowEmptyResults: true
             )
 
