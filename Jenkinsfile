@@ -9,7 +9,7 @@ pipeline {
     parameters {
         booleanParam(
             name: 'DOCKER_RUN',
-            defaultValue: false,
+            defaultValue: true,
             description: 'Run tests inside Docker'
         )
     }
