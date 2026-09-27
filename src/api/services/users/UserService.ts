@@ -43,7 +43,6 @@ export class UserService {
   async addUser(payload: any) {
     validateSchema(AddUserRequestSchema, payload);
     const res = await this.apiClient.post(`/users/add`, payload);
-    console.log('Response:', res.status, res.body); // Debugging line
     return { status: res.status, data: res.body };
   }
 
