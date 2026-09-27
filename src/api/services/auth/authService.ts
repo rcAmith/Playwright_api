@@ -1,5 +1,5 @@
 import { ApiClient } from "../../client/apiClient";
-import { LoginResponseSchema , LoginRequest, LoginRequestSchema } from "../../schema/ auth.schema";
+import { LoginResponseSchema , LoginRequest, LoginRequestSchema } from "../../schema/auth.schema";
 import { validateSchema } from "../../schema/validate.schema";
 
 export class AuthService {
